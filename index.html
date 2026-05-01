@@ -1949,11 +1949,15 @@ function renderFeed(posts){
 async function loadFeed(){
   // Afficher les démos immédiatement sans attendre Supabase
   renderFeed(DEMO_POSTS);
-  // Charger les vraies données en arrière-plan
+  // Charger les vraies données et les mélanger avec les démos
   try {
     loadAllRatings();
     const{data}=await db.from("posts").select("*").order("created_at",{ascending:false});
-    if(data && data.length) renderFeed(data);
+    if(data && data.length){
+      // Vraies annonces en premier, puis démos pour remplir
+      const merged = [...data, ...DEMO_POSTS];
+      renderFeed(merged);
+    }
   } catch(e){}
 }
 
