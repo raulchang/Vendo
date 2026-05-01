@@ -1772,7 +1772,7 @@ async function saveProfile(){
   const bio=document.getElementById("editBio").value.trim();
   profile=getProfile();profile.name=name;profile.city=city;profile.bio=bio;
   localStorage.setItem("vendo_profile",JSON.stringify(profile));
-  await db.from("profiles").insert([{name,city,bio,photo_url:profile.photo||"",staff:profile.staff||false}]);
+  try{await db.from("profiles").insert([{name,city,bio,photo_url:profile.photo||"",email:profile.email||"",staff:profile.staff||false}]);}catch(e){}
   closeEdit();renderProfileScreen();
   if(cguPending){cguPending=false;showScreen("sell");}
 }
@@ -2193,7 +2193,7 @@ async function doSignup(){
   handleReferral(name);
   localStorage.setItem("vendo_profile",JSON.stringify(profile));
   // Insert into profiles table
-  await db.from("profiles").insert([{name,city,photo_url:"",staff:false,bio:""}]);
+  try{await db.from("profiles").insert([{name,city,email,photo_url:"",staff:false,bio:""}]);}catch(e){}
   closeAllSheets();enterApp();
 }
 
@@ -3591,12 +3591,6 @@ function setSize(size){
   renderExplore();
 }
 
-function selectSize(btn, size){
-  if(selectedSizeBtn) selectedSizeBtn.classList.remove('selected');
-  btn.classList.add('selected');
-  selectedSizeBtn = btn;
-  window._selectedSize = size;
-}
 
 // Override setCategory to show/hide size filter
 const _origSetCategory = setCategory;
@@ -3626,9 +3620,10 @@ function getFilteredPosts(){
     const matchSearch = !searchQuery || title.includes(searchQuery) || desc.includes(searchQuery) || city.includes(searchQuery) || brand.includes(searchQuery);
     const matchCat = !activeCategory || cat === activeCategory;
     const matchPrice = price >= priceMinVal && price <= priceMaxVal;
-    const matchBrand = !activeBrand || brand.includes(activeBrand) || title.includes(activeBrand);
-    const matchSize = !activeSize || size === activeSize;
-    return matchSearch && matchCat && matchPrice && matchBrand && matchSize;
+    const matchBrand = !activeBrand || brand.includes(activeBrand.toLowerCase()) || title.includes(activeBrand.toLowerCase());
+    const matchSize = !activeSize || size === activeSize.toLowerCase();
+    const matchCond = !selectedCondition || (p.condition||'') === selectedCondition;
+    return matchSearch && matchCat && matchPrice && matchBrand && matchSize && matchCond;
   });
 }
 
