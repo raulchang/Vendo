@@ -9,6 +9,9 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Non autorisé' });
   }
 
+  if (!process.env.SUPABASE_URL) return res.status(500).json({ error: 'SUPABASE_URL manquant' });
+  if (!process.env.SUPABASE_SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY manquant' });
+
   const db = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_KEY
