@@ -3451,7 +3451,7 @@ async function loadAdminDashboard(){
   let postsRes, ordersRes, usersRes;
   try {
     [postsRes, ordersRes, usersRes] = await Promise.all([
-      db.from('posts').select('*', {count:'exact',head:false}),
+      db.from('posts').select('*', {count:'exact',head:false}).eq('is_sold', false),
       db.from('orders').select('*'),
       db.from('profiles').select('*', {count:'exact',head:false})
     ]);
