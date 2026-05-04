@@ -3620,7 +3620,7 @@ async function adminApi(action, params){
     body: JSON.stringify({code: ADMIN_CODE, action, ...params})
   });
   const data = await resp.json();
-  if(!resp.ok) throw new Error(data.error || 'Erreur serveur');
+  if(!resp.ok) throw new Error((data.error || 'Erreur serveur') + (data.debug_url ? ' [URL:'+data.debug_url+']' : ''));
   return data;
 }
 
