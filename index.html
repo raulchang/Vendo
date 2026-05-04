@@ -2216,10 +2216,8 @@ async function loadFeed(){
   renderFeed(DEMO_POSTS);
   try {
     loadAllRatings();
-    const{data}=await db.from("posts").select("*").order("created_at",{ascending:false});
+    const{data}=await db.from("posts").select("*").eq("is_sold",false).order("created_at",{ascending:false});
     if(data && data.length){
-      // DB a des posts → afficher uniquement les posts réels (pas les démos JS)
-      // Les posts réels de vrais utilisateurs apparaissent en premier (created_at DESC)
       renderFeed(data);
     }
     // Si DB vide → les DEMO_POSTS JS restent affichés comme fallback
@@ -2462,7 +2460,7 @@ function buildCard(p){
 async function loadExplore(){
   const grid=document.getElementById("exploreGrid");
   grid.innerHTML=`<div style="grid-column:1/-1" class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
-  const{data,error}=await db.from("posts").select("*").order("created_at",{ascending:false});
+  const{data,error}=await db.from("posts").select("*").eq("is_sold",false).order("created_at",{ascending:false});
   if(error||!data||!data.length){grid.innerHTML=`<div style="grid-column:1/-1" class="empty"><p>Aucune annonce</p></div>`;return;}
   grid.innerHTML="";
   for(const p of data){
