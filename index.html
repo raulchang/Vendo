@@ -3551,7 +3551,8 @@ async function loadAdminDashboard(){
           <div class="admin-item-name">${esc(u.name||'Anonyme')} ${isFeatured?`<span style="font-size:10px;background:rgba(245,158,11,0.2);color:#f59e0b;padding:1px 6px;border-radius:20px;font-weight:700">⭐ ${featuredLeft}j</span>`:''}</div>
           <div class="admin-item-sub">${esc(u.city||'—')} · ${esc(u.email||'')}</div>
         </div>
-        <button class="admin-item-action" style="${u.banned?'background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.3);color:#22c55e':''}" onclick="adminBanUser('${esc(u.id)}','${esc(u.name)}',${!!u.banned})">${u.banned?'Débannir':'Bannir'}</button>`;
+        <button class="admin-item-action" style="${u.banned?'background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.3);color:#22c55e':''}" onclick="adminBanUser('${esc(u.id)}','${esc(u.name)}',${!!u.banned})">${u.banned?'Débannir':'Bannir'}</button>
+        <button class="admin-item-action" style="background:rgba(255,45,85,0.15);border-color:rgba(255,45,85,0.3);color:var(--accent);margin-left:6px" onclick="adminDeleteUser('${esc(u.id)}','${esc(u.name)}')">Suppr.</button>`;
       usersBox.appendChild(item);
     });
   }
@@ -3673,6 +3674,15 @@ async function adminGiftSlots(id, name, slots){
     await adminApi('gift_slots', {id, slots});
     document.getElementById('adminUserModal').classList.remove('open');
     showToast(`🎁 ${slots} annonce${slots>1?'s':''} offerte${slots>1?'s':''} à ${name}`);
+    loadAdminDashboard();
+  } catch(e){ alert('Erreur : '+e.message); }
+}
+
+async function adminDeleteUser(id, name){
+  if(!confirm('Supprimer définitivement « '+name+' » ? Cette action est irréversible.')) return;
+  try {
+    await adminApi('delete_user', {id});
+    showToast('🗑️ Utilisateur supprimé');
     loadAdminDashboard();
   } catch(e){ alert('Erreur : '+e.message); }
 }
