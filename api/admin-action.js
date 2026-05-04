@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const { code, action, ...params } = req.body || {};
@@ -15,9 +15,12 @@ export default async function handler(req, res) {
   if (!supabaseUrl) return res.status(500).json({ error: 'SUPABASE_URL manquant' });
   if (!supabaseKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY manquant' });
 
-  const db = createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false }
-  });
+  let db;
+  try {
+    db = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
+  } catch(err) {
+    return res.status(500).json({ error: 'createClient: ' + err.message });
+  }
 
   try {
     let result;
@@ -44,16 +47,9 @@ export default async function handler(req, res) {
       case 'gift_slots': {
         const { id, slots } = params;
         if (!id || !slots) return res.status(400).json({ error: 'params manquants' });
-        const { data: profile } = await db
-          .from('profiles')
-          .select('gift_slots')
-          .eq('id', id)
-          .maybeSingle();
+        const { data: profile } = await db.from('profiles').select('gift_slots').eq('id', id).maybeSingle();
         const current = profile?.gift_slots || 0;
-        result = await db
-          .from('profiles')
-          .update({ gift_slots: current + slots })
-          .eq('id', id);
+        result = await db.from('profiles').update({ gift_slots: current + slots }).eq('id', id);
         break;
       }
 
@@ -86,6 +82,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
 
   } catch (err) {
-    return res.status(500).json({ error: err.message, url: supabaseUrl.substring(0, 30) });
+    return res.status(500).json({ error: err.message });
   }
-}
+};
