@@ -2018,34 +2018,56 @@ function renderProfileScreen(){
     </div>`;return;
   }
   const avatarHTML=profile.photo
-    ?`<div class="profile-av-ring-lg"><img class="profile-av-lg" src="${profile.photo}" alt=""></div>`
-    :`<div class="profile-av-ring-lg"><div class="profile-av-lg">${initial(profile.name)}</div></div>`;
+    ?`<img class="profile-av-lg" src="${profile.photo}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;border:4px solid #000">`
+    :`<div style="width:100%;height:100%;border-radius:50%;background:#111;border:4px solid #000;display:grid;place-items:center;font-size:42px;font-weight:900;color:#fff">${initial(profile.name)}</div>`;
   const ratingTxt=getRatingText(profile.name);
   el.innerHTML=`
-    <div class="profile-cover">
-      <div class="screen-header" style="background:transparent;border:none;position:absolute;top:0;left:0;right:0;z-index:5">
-        <button class="back-btn" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div style="display:flex;flex-direction:column;align-items:center;padding:50px 20px 24px;background:radial-gradient(ellipse at top,#1a0a2e 0%,#000 60%)">
+      <div style="position:relative;margin-bottom:16px">
+        <div style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#ff2d55 0%,#ff6b35 50%,#7c3aed 100%);padding:3px">${avatarHTML}</div>
+        ${profile.verified?`<div style="position:absolute;bottom:4px;right:4px;width:24px;height:24px;background:#0ea5e9;border-radius:50%;border:2px solid #000;display:grid;place-items:center;font-size:11px;color:#fff;font-weight:800">✓</div>`:''}
       </div>
-    </div>
-    <div class="profile-av-wrap">${avatarHTML}</div>
-    <div class="profile-info">
-      <div class="profile-name">${esc(profile.name)} ${profile.verified?'<span class="verified-badge">✓ CERTIFIÉ</span>':''}</div>
-      <div class="profile-bio">${esc(profile.bio||"Profil VENDO")}${profile.city?' · '+esc(profile.city):''}</div>
-      <div style="color:var(--gold);font-size:13px;font-weight:600;margin-bottom:16px">${ratingTxt}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <button class="edit-btn" onclick="openEdit()" style="justify-content:center">✏️ Modifier</button>
-        <button class="edit-btn" onclick="logout()" style="color:var(--accent);border-color:rgba(255,45,85,0.2);justify-content:center">Sortir</button>
-        <button class="edit-btn" onclick="showQR()" style="color:#a78bfa;border-color:rgba(124,58,237,0.3);justify-content:center">📱 QR</button>
-        <button class="edit-btn" onclick="openScanner()" style="color:var(--green);border-color:rgba(34,197,94,0.3);justify-content:center">🔍 Scanner</button>
-        <button class="edit-btn" onclick="openVerifModal()" style="color:#0ea5e9;border-color:rgba(14,165,233,0.3);justify-content:center">🪪 Certifier</button>
-        <button class="edit-btn" onclick="openAdminLogin()" style="color:#f59e0b;border-color:rgba(245,158,11,0.3);justify-content:center">⚙️ Admin</button>
+      <div style="font-size:24px;font-weight:900;letter-spacing:-0.5px">${esc(profile.name)}</div>
+      ${profile.city?`<div style="font-size:13px;color:#888;margin:4px 0 12px">${esc(profile.city)}</div>`:'<div style="margin-bottom:12px"></div>'}
+      ${profile.bio?`<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:12px 28px;font-size:13px;color:#aaa;margin-bottom:20px;text-align:center">${esc(profile.bio)}</div>`:''}
+      <div style="display:flex;gap:24px;margin-bottom:28px">
+        <div style="text-align:center"><div id="profilePostCount" style="font-size:20px;font-weight:800">0</div><div style="font-size:11px;color:#666">Annonces</div></div>
+        <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
+        <div style="text-align:center"><div style="font-size:20px;font-weight:800">—</div><div style="font-size:11px;color:#666">Ventes</div></div>
+        <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
+        <div style="text-align:center"><div style="font-size:20px;font-weight:800;color:var(--gold)">${ratingTxt==='Pas encore noté'?'—':ratingTxt}</div><div style="font-size:11px;color:#666">Note</div></div>
       </div>
-      <div class="ref-card">
-        <div style="font-size:14px;font-weight:800;margin-bottom:4px">Parrainage</div>
-        <div style="font-size:13px;color:var(--sub);line-height:1.4">Invite un ami → il s'inscrit → ton annonce est mise en avant <strong style="color:#fff">3 jours</strong> gratuitement !</div>
-        <div class="ref-link-box">
-          <span class="ref-link-txt" id="refLink">vendotodo.ch?ref=...</span>
-          <button class="ref-copy-btn" onclick="copyRefLink()">Copier</button>
+      <button onclick="openEdit()" style="width:100%;padding:15px;background:linear-gradient(90deg,#ff2d55,#7c3aed);border:none;border-radius:16px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:24px">Modifier mon profil</button>
+      <div style="display:flex;justify-content:space-around;width:100%;margin-bottom:28px">
+        <div onclick="showQR()" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer">
+          <div style="width:52px;height:52px;border-radius:50%;background:#1a1a1a;border:1px solid rgba(124,58,237,0.4);display:grid;place-items:center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </div>
+          <span style="font-size:11px;color:#888;font-weight:600">QR</span>
+        </div>
+        <div onclick="openScanner()" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer">
+          <div style="width:52px;height:52px;border-radius:50%;background:#1a1a1a;border:1px solid rgba(34,197,94,0.4);display:grid;place-items:center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <span style="font-size:11px;color:#888;font-weight:600">Scanner</span>
+        </div>
+        <div onclick="openVerifModal()" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer">
+          <div style="width:52px;height:52px;border-radius:50%;background:#1a1a1a;border:1px solid rgba(14,165,233,0.4);display:grid;place-items:center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <span style="font-size:11px;color:#888;font-weight:600">Certifier</span>
+        </div>
+        <div onclick="openAdminLogin()" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer">
+          <div style="width:52px;height:52px;border-radius:50%;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);display:grid;place-items:center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          </div>
+          <span style="font-size:11px;color:#f59e0b;font-weight:600">Admin</span>
+        </div>
+        <div onclick="logout()" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer">
+          <div style="width:52px;height:52px;border-radius:50%;background:rgba(255,45,85,0.08);border:1px solid rgba(255,45,85,0.3);display:grid;place-items:center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff2d55" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </div>
+          <span style="font-size:11px;color:#ff2d55;font-weight:600">Sortir</span>
         </div>
       </div>
     </div>
