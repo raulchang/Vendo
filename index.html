@@ -3672,6 +3672,7 @@ async function adminGiftSlots(id, name, slots){
     await adminApi('gift_slots', {id, slots});
     document.getElementById('adminUserModal').classList.remove('open');
     showToast(`🎁 ${slots} annonce${slots>1?'s':''} offerte${slots>1?'s':''} à ${name}`);
+    loadAdminDashboard();
   } catch(e){ alert('Erreur : '+e.message); }
 }
 
@@ -3996,7 +3997,7 @@ let allPosts = [];
 
 async function loadExploreData(){
   if(!allPosts.length){
-    const{data} = await db.from('posts').select('*').order('created_at',{ascending:false});
+    const{data} = await db.from('posts').select('*').eq('is_sold',false).order('created_at',{ascending:false});
     allPosts = (data && data.length) ? data : DEMO_POSTS;
   }
   renderExplore();
