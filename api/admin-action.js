@@ -1,5 +1,3 @@
-const { createClient } = require('@supabase/supabase-js');
-
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -9,28 +7,52 @@ module.exports = async function handler(req, res) {
     return res.status(403).json({ error: 'Non autorisé' });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+  const SUPA_URL = process.env.SUPABASE_URL;
+  const SUPA_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-  if (!supabaseUrl) return res.status(500).json({ error: 'SUPABASE_URL manquant' });
-  if (!supabaseKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY manquant' });
+  if (!SUPA_URL) return res.status(500).json({ error: 'SUPABASE_URL manquant' });
+  if (!SUPA_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY manquant' });
 
-  let db;
-  try {
-    db = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
-  } catch(err) {
-    return res.status(500).json({ error: 'createClient: ' + err.message });
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY,
+    'Prefer': 'return=minimal'
+  };
+
+  async function sbUpdate(table, id, data) {
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) { const t = await r.text(); throw new Error(t); }
+  }
+
+  async function sbSelect(table, id, col) {
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}&select=${col}`, {
+      headers: { ...headers, 'Accept': 'application/json' }
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const rows = await r.json();
+    return rows[0] || null;
+  }
+
+  async function sbDelete(table, id) {
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: 'DELETE',
+      headers
+    });
+    if (!r.ok) throw new Error(await r.text());
   }
 
   try {
-    let result;
-
     switch (action) {
 
       case 'ban_user': {
         const { id, banned } = params;
         if (!id) return res.status(400).json({ error: 'id manquant' });
-        result = await db.from('profiles').update({ banned: !!banned }).eq('id', id);
+        await sbUpdate('profiles', id, { banned: !!banned });
         break;
       }
 
@@ -40,37 +62,37 @@ module.exports = async function handler(req, res) {
         const featured_until = days > 0
           ? new Date(Date.now() + days * 86400000).toISOString()
           : null;
-        result = await db.from('profiles').update({ featured_until }).eq('id', id);
+        await sbUpdate('profiles', id, { featured_until });
         break;
       }
 
       case 'gift_slots': {
         const { id, slots } = params;
         if (!id || !slots) return res.status(400).json({ error: 'params manquants' });
-        const { data: profile } = await db.from('profiles').select('gift_slots').eq('id', id).maybeSingle();
-        const current = profile?.gift_slots || 0;
-        result = await db.from('profiles').update({ gift_slots: current + slots }).eq('id', id);
+        const row = await sbSelect('profiles', id, 'gift_slots');
+        const current = row?.gift_slots || 0;
+        await sbUpdate('profiles', id, { gift_slots: current + slots });
         break;
       }
 
       case 'hide_post': {
         const { id } = params;
         if (!id) return res.status(400).json({ error: 'id manquant' });
-        result = await db.from('posts').update({ is_sold: true }).eq('id', id);
+        await sbUpdate('posts', id, { is_sold: true });
         break;
       }
 
       case 'delete_post': {
         const { id } = params;
         if (!id) return res.status(400).json({ error: 'id manquant' });
-        result = await db.from('posts').delete().eq('id', id);
+        await sbDelete('posts', id);
         break;
       }
 
       case 'delete_user': {
         const { id } = params;
         if (!id) return res.status(400).json({ error: 'id manquant' });
-        result = await db.from('profiles').delete().eq('id', id);
+        await sbDelete('profiles', id);
         break;
       }
 
@@ -78,7 +100,6 @@ module.exports = async function handler(req, res) {
         return res.status(400).json({ error: 'Action inconnue: ' + action });
     }
 
-    if (result?.error) return res.status(500).json({ error: result.error.message });
     return res.status(200).json({ ok: true });
 
   } catch (err) {
